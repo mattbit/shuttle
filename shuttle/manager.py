@@ -104,6 +104,8 @@ class TaskQueue:
 
 
 class Manager:
+    """Task manager."""
+
     def __init__(self, config):
         self.storage = Storage(config)
         self._task_defs = dict()
@@ -111,6 +113,7 @@ class Manager:
         self.queue = TaskQueue(self)
 
     def register(self, obj):
+        """Register a source or a task in the task manager."""
         if isinstance(obj, TaskDefinition):
             return self.register_task(obj)
 
@@ -121,9 +124,11 @@ class Manager:
         raise Exception(f'Cannot register object of type {obj_type}.')
 
     def register_task(self, task_def):
+        """Register a TaskDefinition."""
         self._task_defs[task_def.name] = task_def
 
     def register_source(self, source):
+        """Register a Source."""
         self._sources[source.name] = source
 
     def get_definition(self, name):
