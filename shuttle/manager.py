@@ -1,10 +1,9 @@
-from dataclasses import dataclass, field
-from typing import Any
 import uuid
 from .storage import Storage
 from .utils import Doc
 from datetime import datetime
 from blessings import Terminal
+
 
 class Source:
     def __init__(self, name, action):
@@ -151,7 +150,7 @@ class Manager:
 
     def process(self, errors=False):
         term = Terminal()
-        task =  self.queue.get()
+        task = self.queue.get()
         while task is not None:
             print(f'Processing task {task.definition.name}')
             print(f'Configuration {task.config}')

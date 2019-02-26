@@ -1,5 +1,5 @@
 from pathlib import Path
-from pymongo import MongoClient, ASCENDING
+from pymongo import MongoClient
 
 
 class Storage:
@@ -7,7 +7,6 @@ class Storage:
         self.client = MongoClient(config.get('host'), config.get('port'))
         self.db = self.client[config.get('database')]
         self.local_dir = Path(config.get('local_dir'))
-        # self.fs = FileStorage(config.get(''))
 
     def find_one(self, collection, *args, **kwargs):
         return self.db[collection].find_one(*args, **kwargs)
