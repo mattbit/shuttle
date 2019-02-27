@@ -1,6 +1,6 @@
+import shutil
 from pathlib import Path
-from pymongo import MongoClient
-
+from pymongo import MongoClient, ReturnDocument
 
 class Storage:
     def __init__(self, config):
@@ -14,6 +14,9 @@ class Storage:
     def find(self, collection, *args, **kwargs):
         return self.db[collection].find(*args, **kwargs)
 
+    def find_one_and_update(self, collection, *args, **kwargs):
+        return self.db[collection].find_one_and_update(*args, **kwargs)
+
     def update_one(self, collection, filter, query):
         return self.db[collection].update_one(filter, query)
 
@@ -25,6 +28,10 @@ class Storage:
 
     def bucket(self, id):
         return Bucket(id, self.local_dir.joinpath(id[:2], id))
+
+    def buckets(self):
+        return [Bucket(path.name, path)
+                for path in self.local_dir.glob('??/*')]
 
 
 class Bucket:
@@ -42,3 +49,6 @@ class Bucket:
 
     def delete_file(self, name):
         self.path.joinpath(name).unlink()
+
+    def drop(self):
+        shutil.rmtree(self.path)

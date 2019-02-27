@@ -3,6 +3,7 @@ from .storage import Storage
 from .utils import Doc
 from datetime import datetime
 from blessings import Terminal
+from pymongo import ReturnDocument
 
 
 class Source:
@@ -79,9 +80,12 @@ class TaskQueue:
         self.manager.storage.insert_one('tasks', doc)
 
     def get(self):
-        doc = self.manager.storage.find_one('tasks',
-                                            filter={'status': 'queued'},
-                                            sort=[('priority', 1)])
+        """Get a task by priority and remove it from the queue."""
+        doc = self.manager.storage.find_and_update('tasks',
+                                                   {'status': 'queued'},
+                                                   {'status': 'waiting'},
+                                                   sort=[('priority', 1)],
+                                                   return_document=ReturnDocument.AFTER)
         return self._task_from_doc(doc)
 
     def remove(self, task):
@@ -101,6 +105,21 @@ class TaskQueue:
 
     def empty(self):
         self.manager.storage.drop('tasks')
+
+    def contains(self, task):
+        filter = {'task': task.definition.name,
+                  'config': task.config}
+        doc = self.manager.storage.find_one('tasks', filter)
+
+        if doc:
+            return True
+
+        return False
+
+    def find_one(self, query):
+        doc = self.manager.storage.find_one('tasks', query)
+        if doc:
+            return self._task_from_doc(doc)
 
 
 class Manager:
@@ -139,16 +158,26 @@ class Manager:
         if source:
             return source.content(data)
 
-    def enqueue(self, task_name, task_config, priority=None):
+    def enqueue(self, task_name, task_config, priority=None, rerun=False):
+        """Add a task to the queue."""
         task_def = self.get_definition(task_name)
         if priority is None:
             priority = task_def.priority
         task = Task(self, None, task_def,
                     config=task_config, priority=priority)
         task.bucket = self.storage.bucket(task.id)
-        self.queue.put(task)
+
+        if rerun or not self.queue.contains(task):
+            self.queue.put(task)
 
         return task
+
+    def task(self, query):
+        """Find a task."""
+        if not isinstance(query, dict):
+            query = {'_id': query}
+
+        return self.queue.find_one(query)
 
     def tasks(self, *args, **kwargs):
         return self.queue.all(*args, **kwargs)
@@ -172,3 +201,10 @@ class Manager:
 
             # Next task
             task = self.queue.get()
+
+    def clean_buckets(self):
+        """Deletes all buckets not associated to a task."""
+        for bucket in self.storage.buckets():
+            if not self.queue.find_one({'bucket': bucket.id}):
+                print(f'Bucket {bucket.id} is unreferenced. Deleting.')
+                bucket.drop()
