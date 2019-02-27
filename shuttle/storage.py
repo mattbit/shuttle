@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
-from pymongo import MongoClient, ReturnDocument
+from pymongo import MongoClient
+
 
 class Storage:
     def __init__(self, config):

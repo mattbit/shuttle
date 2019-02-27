@@ -1,3 +1,6 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mattbit/shuttle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mattbit/shuttle/?branch=master)
+[![Build Status](https://travis-ci.org/mattbit/shuttle.svg?branch=master)](https://travis-ci.org/mattbit/shuttle)
+
 # Shuttle 🚀
 
 A simple task runner. **Work in progress, highly unstable.**
